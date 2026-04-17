@@ -1,11 +1,9 @@
 const express = require('express');
-const { productRoutes } = require('../controllers/product.controller');
-const { transactionRoutes } = require('../controllers/transaction.controller');
+const { authRoutes } = require('../controllers/auth.controller');
 
 const router = express.Router();
 
-// API prefix
-router.use('/api/products', productRoutes);
-router.use('/api/transactions', transactionRoutes);
+// Auth routes
+router.use('/api/auth', authRoutes);
 
 module.exports = { routes: router };
