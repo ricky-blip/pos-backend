@@ -1,9 +1,12 @@
 const express = require('express');
 const { authRoutes } = require('../controllers/auth.controller');
+const categoryRoutes = require('./category.routes');
+const menuRoutes = require('./menu.routes');
 
-const router = express.Router();
+const routes = express.Router();
 
-// Auth routes
-router.use('/api/auth', authRoutes);
+routes.use('/api/auth', authRoutes);
+routes.use('/api/categories', categoryRoutes);
+routes.use('/api/menus', menuRoutes);
 
-module.exports = { routes: router };
+module.exports = { routes };

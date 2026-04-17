@@ -36,12 +36,18 @@ const syncDatabase = async () => {
   try {
     await sequelize.authenticate();
     console.log('✅ Database terhubung!');
+
+    // Initialize models and their associations
+    require('./models');
+
     await sequelize.sync({ alter: true });
     console.log('✅ Database synced!');
 
     // Run seeder
     const { seedUsers } = require('./seeders/user.seeder');
+    const { seedCategoriesAndMenus } = require('./seeders/categoryMenu.seeder');
     await seedUsers();
+    await seedCategoriesAndMenus();
   } catch (error) {
     console.error('❌ Gagal koneksi database:', error.message);
   }
