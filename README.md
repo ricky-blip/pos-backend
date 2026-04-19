@@ -42,8 +42,8 @@ pos-backend/
     │   └── transaction.model.js        # Sequelize model Transaction
     │
     ├── dto/
-    │   ├── create-product.dto.js       # Validasi input Product
-    │   └── create-transaction.dto.js   # Validasi input Transaction
+    │   ├── menu.dto.js                 # DTO untuk Menu (Request & Response)
+    │   └── category.dto.js             # DTO untuk Kategori (Response)
     │
     ├── routes/
     │   └── index.js                    # Definisi semua route API
@@ -88,7 +88,7 @@ HTTP Request
 | **Service** | Business logic, validasi DTO, JWT, password hashing | `auth.service.js` |
 | **Repository** | Operasi data (create, read, update, delete) via Sequelize | `user.repository.js` |
 | **Model** | Definisi tabel database (Sequelize) | `User`, `Product`, `Transaction` |
-| **DTO** | Data Transfer Object - validasi input | `CreateProductDto` |
+| **DTO** | Data Transfer Object - Validasi & Formatting | `menu.dto.js` |
 | **Middleware** | Cross-cutting concerns (auth, logging, error) | `authMiddleware.js` |
 
 ---
@@ -190,21 +190,28 @@ Server berjalan di: `http://localhost:3000`
 | POST | `/api/auth/register` | Registrasi user baru |
 | POST | `/api/auth/login` | Login user |
 
-### Products (Protected - butuh token)
+### Menus (Protected - butuh token)
 | Method | URL | Deskripsi |
 |--------|-----|-----------|
-| GET | `/api/products` | Ambil semua produk |
-| GET | `/api/products/:id` | Ambil detail produk |
-| POST | `/api/products` | Buat produk baru |
-| PUT | `/api/products/:id` | Update produk |
-| DELETE | `/api/products/:id` | Hapus produk |
+| GET | `/api/menus` | Ambil semua menu |
+| GET | `/api/menus/:id` | Ambil detail menu |
+| POST | `/api/menus` | Buat menu baru (Admin) |
+| PUT | `/api/menus/:id` | Update menu (Admin) |
+| DELETE | `/api/menus/:id` | Hapus menu (Admin) |
 
-### Transactions (Protected - butuh token)
+### Categories (Protected - butuh token)
 | Method | URL | Deskripsi |
 |--------|-----|-----------|
-| GET | `/api/transactions` | Ambil semua transaksi |
-| GET | `/api/transactions/:id` | Ambil detail transaksi |
+| GET | `/api/categories` | Ambil semua kategori |
+| POST | `/api/categories` | Buat kategori baru (Admin) |
+| PUT | `/api/categories/:id` | Update kategori (Admin) |
+| DELETE | `/api/categories/:id` | Hapus kategori (Admin) |
+
+### Transactions (Coming Soon)
+| Method | URL | Deskripsi |
+|--------|-----|-----------|
 | POST | `/api/transactions` | Buat transaksi baru |
+| GET | `/api/transactions` | Ambil riwayat transaksi |
 
 ---
 
@@ -325,6 +332,7 @@ Saat server dijalankan, user default otomatis dibuat:
 | **dotenv** | Load environment variables dari .env |
 | **Cors** | Mengatur akses cross-origin |
 | **Helmet** | Keamanan HTTP headers |
+| **express-validator** | Validasi input data (Request DTO) |
 | **Nodemon** | Auto-restart saat development |
 
 ---
