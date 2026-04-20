@@ -9,6 +9,11 @@ class UserRepository {
     return await User.findByPk(id, { attributes: { exclude: ['password'] } });
   }
 
+  async findByIdWithPassword(id) {
+    return await User.findByPk(id);
+  }
+
+
   async findByUsername(username) {
     return await User.findOne({ where: { username } });
   }

@@ -29,6 +29,16 @@ const Menu = sequelize.define('Menu', {
   image: {
     type: DataTypes.TEXT, // Base64 or URL placeholder
   },
+  stock: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  is_available: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true,
+  },
 }, {
   tableName: 'menus',
   timestamps: true,

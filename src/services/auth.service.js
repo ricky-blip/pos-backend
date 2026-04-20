@@ -65,6 +65,12 @@ class AuthService {
       throw error;
     }
 
+    if (!user.isActive) {
+      const error = new Error('Akun Anda dinonaktifkan. Hubungi administrator.');
+      error.status = 403;
+      throw error;
+    }
+
     // Cek password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -111,6 +117,62 @@ class AuthService {
       throw error;
     }
     return user;
+  }
+
+  async changePassword(userId, oldPassword, newPassword) {
+    // 1. Get user with password
+    const user = await userRepository.findByIdWithPassword(userId);
+    if (!user) {
+      const error = new Error('User tidak ditemukan');
+      error.status = 404;
+      throw error;
+    }
+
+    // 2. Verify old password
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      const error = new Error('Password lama salah');
+      error.status = 401;
+      throw error;
+    }
+
+    // 3. Hash new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    // 4. Update user
+    await userRepository.update(userId, { password: hashedNewPassword });
+
+    return true;
+  }
+
+  async updateProfile(userId, currentPassword, updateData) {
+    // 1. Get user with password
+    const user = await userRepository.findByIdWithPassword(userId);
+    if (!user) {
+      const error = new Error('User tidak ditemukan');
+      error.status = 404;
+      throw error;
+    }
+
+    // 2. Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      const error = new Error('Konfirmasi password salah');
+      error.status = 401;
+      throw error;
+    }
+
+    // 3. Update fields
+    const { username, email } = updateData;
+    const updates = {};
+    if (username) updates.username = username;
+    if (email) updates.email = email;
+
+    await userRepository.update(userId, updates);
+
+    // Get fresh user for response
+    const updatedUser = await userRepository.findById(userId);
+    return updatedUser;
   }
 }
 

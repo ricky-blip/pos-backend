@@ -4,7 +4,7 @@
 class CategoryResponseDTO {
   constructor(category) {
     this.id = category.id;
-    this.name = category.name;
+    this.name = category.label || category.name;
     this.slug = category.slug;
   }
 

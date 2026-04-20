@@ -17,11 +17,20 @@ const menuRequestValidators = {
       .isNumeric().withMessage('Kategori ID harus berupa angka'),
     body('unit')
       .notEmpty().withMessage('Unit (satuan) wajib diisi'),
+    body('stock')
+      .optional()
+      .isNumeric().withMessage('Stok harus berupa angka')
+      .custom(value => value >= 0).withMessage('Stok tidak boleh negatif'),
+    body('is_available')
+      .optional()
+      .isBoolean().withMessage('Status ketersediaan harus berupa boolean'),
   ],
   update: [
     body('name').optional().isLength({ min: 3 }).withMessage('Nama menu minimal 3 karakter'),
     body('price').optional().isNumeric().withMessage('Harga harus berupa angka'),
     body('categoryId').optional().isNumeric().withMessage('Kategori ID harus berupa angka'),
+    body('stock').optional().isNumeric().withMessage('Stok harus berupa angka'),
+    body('is_available').optional().isBoolean().withMessage('Status ketersediaan harus berupa boolean'),
   ]
 };
 
@@ -36,11 +45,13 @@ class MenuResponseDTO {
     this.price = Number(menu.price);
     this.unit = menu.unit;
     this.image = menu.image;
+    this.stock = Number(menu.stock || 0);
+    this.is_available = menu.is_available ?? true;
     
     if (menu.category) {
       this.category = {
         id: menu.category.id,
-        name: menu.category.name,
+        name: menu.category.label || menu.category.name,
         slug: menu.category.slug
       };
     } else {
@@ -60,3 +71,4 @@ module.exports = {
   menuRequestValidators,
   MenuResponseDTO
 };
+

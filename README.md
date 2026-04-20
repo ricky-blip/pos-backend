@@ -1,352 +1,91 @@
-# POS Backend
+# 🚀 PadiPos Backend API (MVP Edition)
 
-Backend sederhana untuk aplikasi Point of Sale (POS) dengan struktur mirip **NestJS** menggunakan Express.js + Sequelize ORM + PostgreSQL.
-
----
-
-## 📁 Struktur Folder
-
-```
-pos-backend/
-├── index.js                    # Entry point - menjalankan server + dotenv
-├── package.json                # Dependencies & scripts
-├── .env                        # Environment variables (tidak di-commit)
-├── .env.example                # Template .env
-├── .gitignore                  # Git ignore rules
-│
-└── src/
-    ├── app.js                  # Setup Express app (middleware, routes, error handler, DB sync)
-    │
-    ├── config/
-    │   ├── app.js              # Konfigurasi aplikasi (port, environment)
-    │   └── database.js         # Konfigurasi koneksi database Sequelize
-    │
-    ├── controllers/
-    │   ├── auth.controller.js          # Handler HTTP Auth (register, login)
-    │   ├── product.controller.js       # Handler HTTP Product CRUD
-    │   └── transaction.controller.js   # Handler HTTP Transaction CRUD
-    │
-    ├── services/
-    │   ├── auth.service.js             # Business logic Auth (JWT, password hash)
-    │   ├── product.service.js          # Business logic Product
-    │   └── transaction.service.js      # Business logic Transaction
-    │
-    ├── repositories/
-    │   ├── user.repository.js          # Data access layer User
-    │   ├── product.repository.js       # Data access layer Product
-    │   └── transaction.repository.js   # Data access layer Transaction
-    │
-    ├── models/
-    │   ├── user.model.js               # Sequelize model User
-    │   ├── product.model.js            # Sequelize model Product
-    │   └── transaction.model.js        # Sequelize model Transaction
-    │
-    ├── dto/
-    │   ├── menu.dto.js                 # DTO untuk Menu (Request & Response)
-    │   └── category.dto.js             # DTO untuk Kategori (Response)
-    │
-    ├── routes/
-    │   └── index.js                    # Definisi semua route API
-    │
-    ├── middleware/
-    │   ├── errorHandler.js             # Global error handling
-    │   ├── logger.js                   # Logging setiap request
-    │   └── authMiddleware.js           # Verifikasi JWT token & role guard
-    │
-    ├── seeders/
-    │   └── user.seeder.js              # Seeder user default (admin & kasir)
-    │
-    └── utils/
-        └── validation.js               # Fungsi validasi umum
-```
+Backend untuk aplikasi Point of Sale (POS) PadiPos. Dibangun menggunakan **Node.js, Express, Sequelize ORM, dan PostgreSQL** dengan arsitektur berlapis (Controller-Service-Repository).
 
 ---
 
-## 🏗️ Arsitektur
-
-Alur request mengikuti pola **Layered Architecture** seperti NestJS:
-
-```
-HTTP Request
-    ↓
-[Controller]    → Handle HTTP request/response
-    ↓
-[Service]       → Business logic & validasi (DTO, JWT, bcrypt)
-    ↓
-[Repository]    → Data access (CRUD via Sequelize ORM)
-    ↓
-[Model]         → Sequelize model (definisi tabel database)
-    ↓
-[PostgreSQL]    → Database storage
-```
-
-### Penjelasan Setiap Layer
-
-| Layer | Fungsi | Contoh |
-|-------|--------|--------|
-| **Controller** | Menerima request HTTP, panggil service, kirim response | `auth.controller.js`, `product.controller.js` |
-| **Service** | Business logic, validasi DTO, JWT, password hashing | `auth.service.js` |
-| **Repository** | Operasi data (create, read, update, delete) via Sequelize | `user.repository.js` |
-| **Model** | Definisi tabel database (Sequelize) | `User`, `Product`, `Transaction` |
-| **DTO** | Data Transfer Object - Validasi & Formatting | `menu.dto.js` |
-| **Middleware** | Cross-cutting concerns (auth, logging, error) | `authMiddleware.js` |
+## 📁 Struktur Proyek
+Proyek ini mengikuti standar industri dengan pemisahan tanggung jawab yang jelas:
+- `controllers/`: Menangani request HTTP & Response Mapping.
+- `services/`: Logika bisnis murni (Auth, Perhitungan Penjualan, Stok).
+- `repositories/`: Akses data ke database PostgreSQL.
+- `models/`: Definisi skema tabel database.
+- `dto/`: Data Transfer Object untuk validasi Request & format Response.
+- `middleware/`: Keamanan (JWT Guard, Role Check) & Logging.
 
 ---
 
-## 🔐 Autentikasi & Authorization
+## 📡 API Endpoints (Daftar Lengkap)
 
-### Flow Login
-```
-POST /api/auth/login
-    ↓
-Cari user di database (by username)
-    ↓
-Cek password (bcrypt.compare)
-    ↓
-Generate JWT token
-    ↓
-Return { user, token }
-```
+### 🛡️ Auth & Profile
+| Method | URL | Akses | Deskripsi |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/auth/login` | Public | Login & mendapatkan JWT Token. |
+| POST | `/api/auth/register` | Public | Registrasi akun baru (Default: Kasir). |
+| GET | `/api/auth/me` | Protected | Mengambil data profil user yang sedang login. |
+| PUT | `/api/auth/change-password` | Protected | Mengganti password user (Butuh password lama). |
 
-### Flow Protected Route
-```
-Request → Middleware cek Authorization header
-    ↓
-Verifikasi JWT token
-    ↓
-Token valid → Lanjut ke controller
-    ↓
-Token invalid → 401 Unauthorized
-```
+### 📦 Katalog & Produk
+| Method | URL | Akses | Deskripsi |
+| :--- | :--- | :--- | :--- |
+| GET | `/api/menus` | Protected | Melihat daftar produk & stok. |
+| POST | `/api/menus` | Admin | Menambah produk baru. |
+| PUT | `/api/menus/:id` | Admin | Update info produk atau stok. |
+| DELETE | `/api/menus/:id` | Admin | Menghapus produk. |
 
-### Role-Based Access
-```javascript
-authMiddleware          // Cek token valid
-roleMiddleware('admin') // Cek role = admin
-roleMiddleware('cashier') // Cek role = cashier
-```
+### 🛒 Transaksi Penjualan
+| Method | URL | Akses | Deskripsi |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/transactions` | Protected | Membuat transaksi baru & mengurangi stok. |
+| GET | `/api/transactions` | Protected | Riwayat transaksi (Kasir: miliknya, Admin: semua). |
+
+### 📊 Laporan & Dashboard (Admin)
+| Method | URL | Akses | Deskripsi |
+| :--- | :--- | :--- | :--- |
+| GET | `/api/reports/dashboard` | Admin | Statistik ringkasan & data tren 30 hari. |
+| GET | `/api/reports/top-selling` | Admin | Daftar produk terlaris per kategori. |
 
 ---
 
-## 🚀 Cara Menjalankan
+## ⚙️ Cara Instalasi
 
-### 1. Install dependencies
-```bash
-npm install
-```
-
-### 2. Setup Database (PostgreSQL)
-
-Buat database `pos_db` di pgAdmin:
-- Klik kanan **Databases** → **Create** → **Database**
-- Name: `pos_db`
-- Owner: `postgres`
-
-### 3. Konfigurasi Environment
-
-Buat file `.env` (copy dari `.env.example`):
-```bash
-copy .env.example .env
-```
-
-Edit sesuai database kamu:
-```env
-DB_USER=postgres
-DB_PASSWORD=password_pgadmin_kamu
-DB_NAME=pos_db
-DB_HOST=localhost
-DB_PORT=5432
-PORT=3000
-NODE_ENV=development
-JWT_SECRET=pos-secret-key-2024
-```
-
-### 4. Jalankan server
-
-**Development (auto-restart):**
-```bash
-npm run dev
-```
-
-**Production:**
-```bash
-npm start
-```
-
-Server berjalan di: `http://localhost:3000`
+1.  **Clone & Install**:
+    ```bash
+    npm install
+    ```
+2.  **Environment Setup**:
+    Buat file `.env` dan lengkapi konfigurasi database:
+    ```env
+    DB_USER=postgres
+    DB_PASSWORD=password_anda
+    DB_NAME=pos_db
+    DB_HOST=localhost
+    JWT_SECRET=rahasia_pos_2024
+    PORT=3000
+    ```
+3.  **Run Development**:
+    ```bash
+    npm run dev
+    ```
 
 ---
 
-## 📡 API Endpoints
-
-### Health Check
-| Method | URL | Deskripsi |
-|--------|-----|-----------|
-| GET | `/health` | Cek status server & database |
-
-### Auth (Public - tidak perlu token)
-| Method | URL | Deskripsi |
-|--------|-----|-----------|
-| POST | `/api/auth/register` | Registrasi user baru |
-| POST | `/api/auth/login` | Login user |
-
-### Menus (Protected - butuh token)
-| Method | URL | Deskripsi |
-|--------|-----|-----------|
-| GET | `/api/menus` | Ambil semua menu |
-| GET | `/api/menus/:id` | Ambil detail menu |
-| POST | `/api/menus` | Buat menu baru (Admin) |
-| PUT | `/api/menus/:id` | Update menu (Admin) |
-| DELETE | `/api/menus/:id` | Hapus menu (Admin) |
-
-### Categories (Protected - butuh token)
-| Method | URL | Deskripsi |
-|--------|-----|-----------|
-| GET | `/api/categories` | Ambil semua kategori |
-| POST | `/api/categories` | Buat kategori baru (Admin) |
-| PUT | `/api/categories/:id` | Update kategori (Admin) |
-| DELETE | `/api/categories/:id` | Hapus kategori (Admin) |
-
-### Transactions (Coming Soon)
-| Method | URL | Deskripsi |
-|--------|-----|-----------|
-| POST | `/api/transactions` | Buat transaksi baru |
-| GET | `/api/transactions` | Ambil riwayat transaksi |
+## 🗄️ Skema Database
+Sistem menggunakan **Auto-Sync**. Tabel berikut akan dibuat secara otomatis:
+- `Users`: Data Admin & Kasir.
+- `Categories`: Pengelompokan produk (Foods, Beverages, Desserts).
+- `Menus`: Katalog produk dengan harga dan stok.
+- `Transactions`: Header nota penjualan.
+- `TransactionItems`: Detail item di dalam setiap nota.
 
 ---
 
-## 📝 Contoh Penggunaan API
-
-### 1. Registrasi User Baru
-```bash
-POST http://localhost:3000/api/auth/register
-Content-Type: application/json
-
-{
-  "username": "kasir1",
-  "email": "kasir1@pos.com",
-  "password": "password123",
-  "role": "cashier"
-}
-```
-
-### 2. Login (Dapat Token)
-```bash
-POST http://localhost:3000/api/auth/login
-Content-Type: application/json
-
-{
-  "username": "admin",
-  "password": "admin123"
-}
-
-# Response:
-{
-  "success": true,
-  "data": {
-    "user": {
-      "id": 1,
-      "username": "admin",
-      "email": "admin@pos.com",
-      "role": "admin"
-    },
-    "token": "eyJhbGciOiJIUzI1NiIs..."
-  }
-}
-```
-
-### 3. Akses Endpoint Protected
-```bash
-GET http://localhost:3000/api/products
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
-```
-
-### 4. Buat Produk Baru
-```bash
-POST http://localhost:3000/api/products
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "name": "Kopi Susu",
-  "price": 15000,
-  "stock": 50,
-  "category": "Minuman"
-}
-```
-
-### 5. Buat Transaksi
-```bash
-POST http://localhost:3000/api/transactions
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "items": [
-    { "productId": 1, "quantity": 2 }
-  ],
-  "paymentMethod": "cash"
-}
-```
-
-> **Catatan:** Stok produk otomatis berkurang saat transaksi berhasil.
+## 🛠️ Dokumentasi Lanjutan
+Untuk detail arsitektur dan alur kerja yang lebih mendalam, silakan merujuk pada dokumen berikut di folder root:
+- [ERD Diagram](file:///erd.md)
+- [Flowchart Bisnis](file:///flowchart.md)
+- [UML Sequence Diagram](file:///uml.md)
+- [Backlog & Roadmap](file:///backlog.md)
 
 ---
-
-## 🗄️ Database
-
-### Teknologi
-- **PostgreSQL** — Database
-- **Sequelize ORM** — ORM (Object-Relational Mapping)
-- **Auto Sync** — Tabel otomatis dibuat saat server start
-
-### Tabel yang Dibuat Otomatis
-
-| Tabel | Kolom | Deskripsi |
-|-------|-------|-----------|
-| **users** | id, username, email, password (hashed), role, createdAt, updatedAt | Data user |
-| **products** | id, name, price, stock, category, createdAt, updatedAt | Data produk |
-| **transactions** | id, items (JSON), totalAmount, paymentMethod, status, createdAt, updatedAt | Data transaksi |
-
-### Seed User (Otomatis)
-
-Saat server dijalankan, user default otomatis dibuat:
-
-| Username | Password | Role |
-|----------|----------|------|
-| `admin` | `admin123` | admin |
-| `kasir` | `kasir123` | cashier |
-
----
-
-## 🛠️ Teknologi yang Digunakan
-
-| Package | Fungsi |
-|---------|--------|
-| **Express.js** | Web framework |
-| **Sequelize** | ORM untuk PostgreSQL |
-| **pg** | Driver PostgreSQL |
-| **pg-hstore** | Serializer hstore untuk PostgreSQL |
-| **bcryptjs** | Hash password |
-| **jsonwebtoken** | JWT token (autentikasi) |
-| **dotenv** | Load environment variables dari .env |
-| **Cors** | Mengatur akses cross-origin |
-| **Helmet** | Keamanan HTTP headers |
-| **express-validator** | Validasi input data (Request DTO) |
-| **Nodemon** | Auto-restart saat development |
-
----
-
-## 📌 Catatan untuk Pemula
-
-- **Setiap layer punya tanggung jawab terpisah** — memudahkan testing & maintenance
-- **Pola Singleton** pada Service & Repository — hanya 1 instance
-- **DTO** memvalidasi input sebelum diproses di service layer
-- **JWT Token** expire dalam 7 hari (bisa diubah di `.env`)
-- **Password di-hash** pakai bcrypt — tidak tersimpan plain text
-- **Database auto-sync** — tabel dibuat otomatis saat server start
-- **Seeder otomatis** — user admin & kasir langsung tersedia
-
----
-
-**Dibuat untuk Final Project Sinau Coding Academy** 🎓
+**Dibuat untuk Sinau Coding Academy** 🎓

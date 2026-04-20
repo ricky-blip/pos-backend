@@ -1,13 +1,24 @@
 const express = require('express');
 const { authService } = require('../services/auth.service');
-const { successResponse } = require('../utils/responseHelper');
+const activityService = require('../services/activity.service');
+const { successResponse, errorResponse } = require('../utils/responseHelper');
+const { authMiddleware } = require('../middleware/authMiddleware');
+
 
 const router = express.Router();
 
-// POST /api/auth/register
+// ... register ...
 router.post('/register', async (req, res, next) => {
   try {
     const result = await authService.register(req.body);
+    
+    await activityService.log({
+      userId: result.user.id,
+      action: 'REGISTER',
+      description: 'User baru mendaftar',
+      req
+    });
+
     successResponse(res, 201, 'Berhasil Registrasi', {
       access_token: result.token,
       token_type: 'Bearer',
@@ -36,6 +47,15 @@ router.post('/login', async (req, res, next) => {
     }
 
     const result = await authService.login(username, password);
+    
+    // Log Activity
+    await activityService.log({
+      userId: result.user.id,
+      action: 'LOGIN',
+      description: 'User login ke sistem',
+      req
+    });
+
     successResponse(res, 200, 'Berhasil Login', {
       access_token: result.token,
       token_type: 'Bearer',
@@ -69,5 +89,60 @@ router.get('/me', async (req, res, next) => {
     next(error);
   }
 });
+
+// PUT /api/auth/change-password (protected)
+router.put('/change-password', authMiddleware, async (req, res, next) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    
+    if (!oldPassword || !newPassword) {
+      const error = new Error('Password lama dan baru wajib diisi');
+      error.status = 400;
+      throw error;
+    }
+
+    await authService.changePassword(req.user.id, oldPassword, newPassword);
+    
+    // Log Activity
+    await activityService.log({
+      userId: req.user.id,
+      action: 'CHANGE_PASSWORD',
+      description: 'User mengganti password mandiri',
+      req
+    });
+
+    successResponse(res, 200, 'Password berhasil diubah');
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/auth/profile (protected)
+router.put('/profile', authMiddleware, async (req, res, next) => {
+  try {
+    const { username, email, currentPassword } = req.body;
+    
+    if (!currentPassword) {
+      const error = new Error('Konfirmasi password diperlukan');
+      error.status = 400;
+      throw error;
+    }
+
+    const user = await authService.updateProfile(req.user.id, currentPassword, { username, email });
+    
+    // Log Activity
+    await activityService.log({
+      userId: req.user.id,
+      action: 'UPDATE_PROFILE',
+      description: 'User memperbarui data profil (Username/Email)',
+      req
+    });
+
+    successResponse(res, 200, 'Profil berhasil diperbarui', user);
+  } catch (error) {
+    next(error);
+  }
+});
+
 
 module.exports = { authRoutes: router };

@@ -1,4 +1,4 @@
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
   const { authService } = require('../services/auth.service');
   const { userRepository } = require('../repositories/user.repository');
 
@@ -17,7 +17,19 @@ function authMiddleware(req, res, next) {
     return next(error);
   }
 
-  // Simpan user info di request
+  const user = await userRepository.findById(decoded.id);
+  if (!user) {
+    const error = new Error('User tidak ditemukan');
+    error.status = 401;
+    return next(error);
+  }
+
+  if (!user.isActive) {
+    const error = new Error('Akun Anda dinonaktifkan. Hubungi administrator.');
+    error.status = 403;
+    return next(error);
+  }
+
   req.user = decoded;
   next();
 }

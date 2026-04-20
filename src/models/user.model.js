@@ -29,6 +29,15 @@ const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: 'cashier',
   },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true,
+  },
+  avatar: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
 }, {
   tableName: 'users',
   timestamps: true,
