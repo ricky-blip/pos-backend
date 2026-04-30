@@ -42,6 +42,15 @@ class MenuRepository {
     await menu.destroy();
     return true;
   }
+
+  async findLowStock(threshold) {
+    return await Menu.findAll({
+      where: {
+        stock: { [Op.lt]: threshold }
+      },
+      include: [{ model: Category, as: 'category' }]
+    });
+  }
 }
 
 module.exports = { menuRepository: new MenuRepository() };

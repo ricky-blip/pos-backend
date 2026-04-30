@@ -1,4 +1,5 @@
 const reportService = require('../services/report.service');
+const pdfService = require('../services/pdf.service');
 const { successResponse, errorResponse } = require('../utils/responseHelper');
 
 class ReportController {
@@ -113,6 +114,65 @@ class ReportController {
       return successResponse(res, 200, 'Berhasil mengambil produk terlaris', items);
     } catch (error) {
       console.error('[ReportController Top Selling] Error:', error);
+      return errorResponse(res, 500, error.message);
+    }
+  }
+
+  /**
+   * Export Sales Report to PDF
+   */
+  async exportPdf(req, res) {
+    try {
+      const { startDate, endDate, categoryId, userId: filterUserId } = req.query;
+      const targetUserId = req.user.role === 'cashier' ? req.user.id : filterUserId;
+
+      let start = startDate;
+      let end = endDate;
+      if (!start || !end) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        start = today.toISOString();
+        end = tomorrow.toISOString();
+      }
+
+      const filters = {
+        startDate: start,
+        endDate: end,
+        userId: targetUserId,
+        categoryId,
+        limit: 1000 // Get more rows for export
+      };
+
+      const [summary, list] = await Promise.all([
+        reportService.getSalesSummary(filters),
+        reportService.getTransactionList(filters)
+      ]);
+
+      const pdfBuffer = await pdfService.generateSalesReport({
+        summary,
+        transactions: list.transactions
+      }, filters);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=sales_report_${Date.now()}.pdf`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error('[ReportController Export PDF] Error:', error);
+      return errorResponse(res, 500, error.message);
+    }
+  }
+
+  /**
+   * Get Stock Prediction
+   */
+  async getStockPrediction(req, res) {
+    try {
+      const predictions = await reportService.getStockPrediction();
+      return successResponse(res, 200, 'Berhasil mengambil prediksi stok', predictions);
+    } catch (error) {
+      console.error('[ReportController Prediction] Error:', error);
       return errorResponse(res, 500, error.message);
     }
   }

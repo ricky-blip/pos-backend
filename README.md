@@ -1,4 +1,4 @@
-# 🚀 PadiPos Backend API (MVP Edition)
+# 🚀 PadiPos Backend API (Production Ready Edition)
 
 Backend untuk aplikasi Point of Sale (POS) PadiPos. Dibangun menggunakan **Node.js, Express, Sequelize ORM, dan PostgreSQL** dengan arsitektur berlapis (Controller-Service-Repository).
 
@@ -32,6 +32,8 @@ Proyek ini mengikuti standar industri dengan pemisahan tanggung jawab yang jelas
 | POST | `/api/menus` | Admin | Menambah produk baru. |
 | PUT | `/api/menus/:id` | Admin | Update info produk atau stok. |
 | DELETE | `/api/menus/:id` | Admin | Menghapus produk. |
+| POST | `/api/menus/:id/stock` | Admin | Penyesuaian stok manual (Record StockLog). |
+| GET | `/api/logs/stock` | Admin | Melihat riwayat audit stok. |
 
 ### 🛒 Transaksi Penjualan
 | Method | URL | Akses | Deskripsi |
@@ -44,6 +46,21 @@ Proyek ini mengikuti standar industri dengan pemisahan tanggung jawab yang jelas
 | :--- | :--- | :--- | :--- |
 | GET | `/api/reports/dashboard` | Admin | Statistik ringkasan & data tren 30 hari. |
 | GET | `/api/reports/top-selling` | Admin | Daftar produk terlaris per kategori. |
+| GET | `/api/reports/export/pdf` | Admin | Export laporan penjualan ke PDF dengan filter. |
+| GET | `/api/reports/prediction` | Admin | Prediksi stok (Moving Average 7 hari). |
+
+### 🕒 Shift Management
+| Method | URL | Akses | Deskripsi |
+| :--- | :--- | :--- | :--- |
+| GET | `/api/shifts/active` | Protected | Cek apakah kasir punya shift yang aktif. |
+| POST | `/api/shifts/start` | Protected | Membuka shift baru (Input Saldo Awal). |
+| POST | `/api/shifts/end` | Protected | Menutup shift (Input Saldo Akhir Fisik). |
+
+### ⚙️ Settings
+| Method | URL | Akses | Deskripsi |
+| :--- | :--- | :--- | :--- |
+| GET | `/api/settings` | Protected | Ambil konfigurasi toko (Nama Toko, Header, Footer). |
+| POST | `/api/settings` | Admin | Simpan/Update konfigurasi toko. |
 
 ---
 
@@ -73,10 +90,14 @@ Proyek ini mengikuti standar industri dengan pemisahan tanggung jawab yang jelas
 ## 🗄️ Skema Database
 Sistem menggunakan **Auto-Sync**. Tabel berikut akan dibuat secara otomatis:
 - `Users`: Data Admin & Kasir.
-- `Categories`: Pengelompokan produk (Foods, Beverages, Desserts).
+- `Categories`: Pengelompokan produk.
 - `Menus`: Katalog produk dengan harga dan stok.
 - `Transactions`: Header nota penjualan.
 - `TransactionItems`: Detail item di dalam setiap nota.
+- `StockLogs`: Audit trail perubahan stok.
+- `Shifts`: Sesi kerja kasir & rekonsiliasi kas.
+- `Settings`: Konfigurasi aplikasi dinamis.
+- `ActivityLogs`: Log aktivitas keamanan & operasional.
 
 ---
 

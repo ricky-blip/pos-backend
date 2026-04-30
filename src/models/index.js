@@ -4,6 +4,9 @@ const { Menu } = require('./menu.model');
 const { Transaction } = require('./transaction.model');
 const { TransactionItem } = require('./transactionItem.model');
 const { ActivityLog } = require('./activityLog.model');
+const { StockLog } = require('./stockLog.model');
+const { Shift } = require('./shift.model');
+const { Settings } = require('./settings.model');
 
 // --- Relationships ---
 
@@ -27,6 +30,18 @@ TransactionItem.belongsTo(Menu, { foreignKey: 'menuId', as: 'menu' });
 User.hasMany(ActivityLog, { foreignKey: 'userId', as: 'logs' });
 ActivityLog.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
+// User <-> StockLog
+User.hasMany(StockLog, { foreignKey: 'userId', as: 'stockLogs' });
+StockLog.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+// Menu <-> StockLog
+Menu.hasMany(StockLog, { foreignKey: 'menuId', as: 'stockLogs' });
+StockLog.belongsTo(Menu, { foreignKey: 'menuId', as: 'menu' });
+
+// User <-> Shift
+User.hasMany(Shift, { foreignKey: 'userId', as: 'shifts' });
+Shift.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
 module.exports = {
   User,
   Category,
@@ -34,4 +49,7 @@ module.exports = {
   Transaction,
   TransactionItem,
   ActivityLog,
+  StockLog,
+  Shift,
+  Settings,
 };

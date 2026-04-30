@@ -11,7 +11,9 @@ const router = express.Router();
  */
 router.get('/sales', authMiddleware, reportController.getSalesReport);
 router.get('/dashboard', authMiddleware, reportController.getDashboardStats);
+router.get('/predictions', authMiddleware, reportController.getStockPrediction);
 router.get('/top-selling', authMiddleware, reportController.getTopSellingItems);
+router.get('/export/pdf', authMiddleware, reportController.exportPdf);
 
 
 module.exports = router;

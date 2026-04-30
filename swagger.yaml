@@ -1,0 +1,303 @@
+openapi: 3.0.0
+info:
+  title: PadiPos Professional API
+  description: Dokumentasi API interaktif untuk sistem Point of Sale PadiPos.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Meta:
+      type: object
+      properties:
+        code: { type: integer }
+        status: { type: string }
+        message: { type: string }
+
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [admin, cashier] }
+
+    Menu:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        price: { type: number }
+        stock: { type: integer }
+        categoryId: { type: integer }
+        category:
+          type: object
+          properties:
+            name: { type: string }
+        is_available: { type: boolean }
+
+    Transaction:
+      type: object
+      properties:
+        id: { type: integer }
+        invoiceNumber: { type: string }
+        customerName: { type: string }
+        totals:
+          type: object
+          properties:
+            original: { type: number }
+            discount: { type: number }
+            tax: { type: number }
+            final: { type: number }
+        payment:
+          type: object
+          properties:
+            method: { type: string }
+            status: { type: string }
+        date: { type: string, format: date-time }
+
+paths:
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        200:
+          description: Berhasil login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta: { $ref: '#/components/schemas/Meta' }
+                  data:
+                    type: object
+                    properties:
+                      access_token: { type: string }
+                      user: { $ref: '#/components/schemas/User' }
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Ambil data profile user aktif
+      security: [{ bearerAuth: [] }]
+      responses:
+        200:
+          description: Data profile
+
+  /api/users:
+    get:
+      tags: [User Management]
+      summary: List semua user (Admin Only)
+      security: [{ bearerAuth: [] }]
+      responses:
+        200:
+          description: List users
+    post:
+      tags: [User Management]
+      summary: Tambah user baru (Admin Only)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password, role]
+              properties:
+                username: { type: string }
+                email: { type: string }
+                password: { type: string }
+                role: { type: string, enum: [admin, cashier] }
+      responses:
+        201:
+          description: User dibuat
+
+  /api/shifts/active:
+    get:
+      tags: [Shift Management]
+      summary: Cek status shift kasir aktif
+      security: [{ bearerAuth: [] }]
+      responses:
+        200:
+          description: Data shift atau null
+
+  /api/shifts/start:
+    post:
+      tags: [Shift Management]
+      summary: Buka shift (Input Saldo Awal)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [startingCash]
+              properties:
+                startingCash: { type: number }
+      responses:
+        201:
+          description: Shift berhasil dibuka
+
+  /api/shifts/end:
+    post:
+      tags: [Shift Management]
+      summary: Tutup shift (Rekonsiliasi Kas)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [actualEndingCash]
+              properties:
+                actualEndingCash: { type: number }
+                notes: { type: string }
+      responses:
+        200:
+          description: Shift ditutup
+
+  /api/menus:
+    get:
+      tags: [Menu & Inventory]
+      summary: List semua produk
+      security: [{ bearerAuth: [] }]
+      responses:
+        200:
+          description: List produk
+    post:
+      tags: [Menu & Inventory]
+      summary: Tambah produk baru (Admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, price, stock, categoryId]
+              properties:
+                name: { type: string }
+                price: { type: number }
+                stock: { type: integer }
+                categoryId: { type: integer }
+      responses:
+        201:
+          description: Produk dibuat
+
+  /api/menus/{id}/adjust:
+    post:
+      tags: [Menu & Inventory]
+      summary: Penyesuaian stok manual (Audit)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, quantity]
+              properties:
+                type: { type: string, enum: [IN, OUT, ADJUSTMENT] }
+                quantity: { type: integer }
+                reason: { type: string }
+      responses:
+        200:
+          description: Stok disesuaikan
+
+  /api/transactions:
+    post:
+      tags: [Transactions]
+      summary: Proses checkout belanja
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items, paymentMethod]
+              properties:
+                customerName: { type: string }
+                paymentMethod: { type: string, enum: [cash, qris, debit] }
+                amountPaid: { type: number }
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      menuId: { type: integer }
+                      quantity: { type: integer }
+                      note: { type: string }
+      responses:
+        201:
+          description: Transaksi sukses
+
+  /api/reports/dashboard:
+    get:
+      tags: [Reports & Analytics]
+      summary: Data dashboard analitik (Admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        200:
+          description: Data trend & summary
+
+  /api/reports/export/pdf:
+    get:
+      tags: [Reports & Analytics]
+      summary: Export laporan ke PDF
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: startDate
+          in: query
+          schema: { type: string, format: date }
+        - name: endDate
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        200:
+          description: File PDF hasil generate
+
+  /api/settings:
+    get:
+      tags: [System Settings]
+      summary: Ambil pengaturan toko
+      security: [{ bearerAuth: [] }]
+      responses:
+        200:
+          description: Data settings
+    post:
+      tags: [System Settings]
+      summary: Update pengaturan toko (Admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                store_name: { type: string }
+                receipt_header: { type: string }
+                receipt_footer: { type: string }
+      responses:
+        200:
+          description: Settings diperbarui

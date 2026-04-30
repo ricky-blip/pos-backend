@@ -220,6 +220,57 @@ class ReportService {
       sales: parseInt(s.totalSales || 0)
     }));
   }
+
+  /**
+   * Get Stock Prediction for next week based on last 7 days
+   */
+  async getStockPrediction() {
+    const today = new Date();
+    const lastWeek = new Date();
+    lastWeek.setDate(today.getDate() - 7);
+
+    // Sum quantity sold per menu in the last 7 days
+    const sales = await TransactionItem.findAll({
+      include: [
+        {
+          model: Transaction,
+          as: 'transaction',
+          where: {
+            createdAt: { [Op.between]: [lastWeek.toISOString(), today.toISOString()] }
+          },
+          attributes: [],
+          required: true,
+        },
+        {
+          model: Menu,
+          as: 'menu',
+          attributes: ['name', 'stock']
+        }
+      ],
+      attributes: [
+        'menuId',
+        [fn('SUM', col('quantity')), 'totalSold'],
+      ],
+      group: ['menuId', 'menu.id', 'menu.name', 'menu.stock'],
+      raw: true,
+      nest: true
+    });
+
+    return sales.map(s => {
+      const sold = parseInt(s.totalSold || 0);
+      const avgPerDay = sold / 7;
+      const predictedNextWeek = Math.ceil(avgPerDay * 7); // Simplified: predict same volume for next week
+      
+      return {
+        menuId: s.menuId,
+        name: s.menu.name,
+        currentStock: s.menu.stock,
+        soldLastWeek: sold,
+        predictedRequirement: predictedNextWeek,
+        recommendation: predictedNextWeek > s.menu.stock ? `Restock at least ${predictedNextWeek - s.menu.stock} items` : 'Stock sufficient'
+      };
+    });
+  }
 }
 
 module.exports = new ReportService();

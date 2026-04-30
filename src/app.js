@@ -5,6 +5,7 @@ const { sequelize } = require('./config/database');
 const { errorHandler } = require('./middleware/errorHandler');
 const { logger } = require('./middleware/logger');
 const { routes } = require('./routes');
+const setupSwagger = require('./config/swagger');
 
 const app = express();
 
@@ -14,6 +15,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(logger);
+
+// Swagger Documentation
+setupSwagger(app);
 
 // Routes
 app.use(routes);

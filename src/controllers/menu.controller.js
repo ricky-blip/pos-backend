@@ -59,10 +59,48 @@ const deleteMenu = async (req, res, next) => {
   }
 };
 
+const adjustStock = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { quantity, type, reason } = req.body;
+    const userId = req.user.id;
+
+    const menu = await menuService.adjustStock(id, { quantity, type, reason, userId });
+    const menuDTO = MenuResponseDTO.fromModel(menu);
+    return successResponse(res, 200, 'Stok berhasil diperbarui', menuDTO);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getLowStockMenus = async (req, res, next) => {
+  try {
+    const { threshold } = req.query;
+    const menus = await menuService.getLowStockMenus(threshold);
+    const menusDTO = MenuResponseDTO.fromModel(menus);
+    return successResponse(res, 200, 'Berhasil mengambil daftar stok menipis', menusDTO);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getStockLogs = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const logs = await menuService.getStockLogs(id);
+    return successResponse(res, 200, 'Berhasil mengambil riwayat stok', logs);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAllMenus,
   getMenuById,
   createMenu,
   updateMenu,
-  deleteMenu
+  deleteMenu,
+  adjustStock,
+  getLowStockMenus,
+  getStockLogs
 };
