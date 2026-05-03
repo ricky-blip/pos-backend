@@ -1,5 +1,6 @@
 const reportService = require('../services/report.service');
 const pdfService = require('../services/pdf.service');
+const settingService = require('../services/setting.service');
 const { successResponse, errorResponse } = require('../utils/responseHelper');
 
 class ReportController {
@@ -145,14 +146,18 @@ class ReportController {
         limit: 1000 // Get more rows for export
       };
 
-      const [summary, list] = await Promise.all([
+      const [summary, list, settings] = await Promise.all([
         reportService.getSalesSummary(filters),
-        reportService.getTransactionList(filters)
+        reportService.getTransactionList(filters),
+        settingService.getAllSettings()
       ]);
+      
+      const storeName = settings.store_name || 'PadiPos';
 
       const pdfBuffer = await pdfService.generateSalesReport({
         summary,
-        transactions: list.transactions
+        transactions: list.transactions,
+        storeName
       }, filters);
 
       res.setHeader('Content-Type', 'application/pdf');

@@ -1,3 +1,4 @@
+const { sequelize } = require('../config/database');
 const { User } = require('./user.model');
 const { Category } = require('./category.model');
 const { Menu } = require('./menu.model');
@@ -52,4 +53,5 @@ module.exports = {
   StockLog,
   Shift,
   Settings,
+  sequelize,
 };

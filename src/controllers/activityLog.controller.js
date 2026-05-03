@@ -4,10 +4,11 @@ const { successResponse, errorResponse } = require('../utils/responseHelper');
 class ActivityLogController {
   async getLogs(req, res) {
     try {
-      const { userId, action, limit, offset } = req.query;
+      const { userId, action, search, limit, offset } = req.query;
       const filters = {
         userId: userId ? Number(userId) : undefined,
         action,
+        search, // New search parameter (username)
         limit: limit ? Number(limit) : 50,
         offset: offset ? Number(offset) : 0,
       };

@@ -1,4 +1,5 @@
-const { ActivityLog } = require('../models');
+const { ActivityLog, User } = require('../models');
+const { Op } = require('sequelize');
 
 class ActivityService {
   /**
@@ -33,18 +34,25 @@ class ActivityService {
    * Get logs with optional filters
    */
   async getLogs(filters = {}) {
-    const { userId, action, limit = 50, offset = 0 } = filters;
+    const { userId, action, search, limit = 50, offset = 0 } = filters;
     const where = {};
     
     if (userId) where.userId = userId;
     if (action) where.action = action;
+
+    const include = [{
+      model: User,
+      as: 'user',
+      attributes: ['id', 'username', 'role'],
+      where: search ? { username: { [Op.iLike]: `%${search}%` } } : {}
+    }];
 
     return await ActivityLog.findAndCountAll({
       where,
       limit,
       offset,
       order: [['createdAt', 'DESC']],
-      include: ['user'] // Assumes relationship is named 'user'
+      include
     });
   }
 }

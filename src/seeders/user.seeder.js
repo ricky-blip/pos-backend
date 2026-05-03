@@ -4,15 +4,27 @@ const bcrypt = require('bcryptjs');
 async function seedUsers() {
   const users = [
     {
-      username: 'admin',
-      email: 'admin@pos.com',
-      password: 'admin123',
+      username: 'ricky',
+      email: 'ricky@pos.com',
+      password: 'ricky123',
       role: 'admin',
     },
     {
-      username: 'kasir',
-      email: 'kasir@pos.com',
-      password: 'kasir123',
+      username: 'budi',
+      email: 'budi@pos.com',
+      password: 'budi123',
+      role: 'cashier',
+    },
+    {
+      username: 'sarah',
+      email: 'sarah@pos.com',
+      password: 'sarah123',
+      role: 'cashier',
+    },
+    {
+      username: 'yuri',
+      email: 'yuri@pos.com',
+      password: 'yuri123',
       role: 'cashier',
     },
   ];

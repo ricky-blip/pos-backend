@@ -35,8 +35,9 @@ async function authMiddleware(req, res, next) {
 }
 
 function roleMiddleware(...roles) {
+  const allowedRoles = roles.flat();
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    if (!allowedRoles.includes(req.user.role)) {
       const error = new Error('Akses ditolak');
       error.status = 403;
       return next(error);

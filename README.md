@@ -23,7 +23,17 @@ Proyek ini mengikuti standar industri dengan pemisahan tanggung jawab yang jelas
 | POST | `/api/auth/login` | Public | Login & mendapatkan JWT Token. |
 | POST | `/api/auth/register` | Public | Registrasi akun baru (Default: Kasir). |
 | GET | `/api/auth/me` | Protected | Mengambil data profil user yang sedang login. |
+| PUT | `/api/auth/profile` | Protected | Mengganti profil (Username/Email). |
 | PUT | `/api/auth/change-password` | Protected | Mengganti password user (Butuh password lama). |
+
+### 👥 Manajemen User (Admin)
+| Method | URL | Akses | Deskripsi |
+| :--- | :--- | :--- | :--- |
+| GET | `/api/users` | Admin | Melihat daftar seluruh staf/kasir. |
+| POST | `/api/users` | Admin | Menambah akun staf baru. |
+| PUT | `/api/users/:id` | Admin | Update profil atau status aktif staf. |
+| DELETE | `/api/users/:id` | Admin | Menghapus akun staf. |
+| PUT | `/api/users/:id/reset-password` | Admin | Reset password staf oleh Admin. |
 
 ### 📦 Katalog & Produk
 | Method | URL | Akses | Deskripsi |
@@ -33,13 +43,18 @@ Proyek ini mengikuti standar industri dengan pemisahan tanggung jawab yang jelas
 | PUT | `/api/menus/:id` | Admin | Update info produk atau stok. |
 | DELETE | `/api/menus/:id` | Admin | Menghapus produk. |
 | POST | `/api/menus/:id/stock` | Admin | Penyesuaian stok manual (Record StockLog). |
-| GET | `/api/logs/stock` | Admin | Melihat riwayat audit stok. |
 
 ### 🛒 Transaksi Penjualan
 | Method | URL | Akses | Deskripsi |
 | :--- | :--- | :--- | :--- |
 | POST | `/api/transactions` | Protected | Membuat transaksi baru & mengurangi stok. |
 | GET | `/api/transactions` | Protected | Riwayat transaksi (Kasir: miliknya, Admin: semua). |
+
+### 🕵️ Audit & Log
+| Method | URL | Akses | Deskripsi |
+| :--- | :--- | :--- | :--- |
+| GET | `/api/logs` | Admin | Melihat riwayat aktivitas operasional (Login, CRUD User, dll). |
+| GET | `/api/logs/stock` | Admin | Melihat riwayat penyesuaian stok (Barang masuk/rusak). |
 
 ### 📊 Laporan & Dashboard (Admin)
 | Method | URL | Akses | Deskripsi |

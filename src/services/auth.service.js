@@ -39,7 +39,7 @@ class AuthService {
       username,
       email,
       password: hashedPassword,
-      role: role || 'cashier',
+      role: 'cashier', // Force role to cashier for public register
     });
 
     // Generate token

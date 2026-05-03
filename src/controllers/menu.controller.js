@@ -11,6 +11,9 @@ const getAllMenus = async (req, res, next) => {
     if (req.query.search) {
       filters.keyword = req.query.search;
     }
+    if (req.query.is_available !== undefined) {
+      filters.is_available = req.query.is_available === 'true';
+    }
     
     const menus = await menuService.getAllMenus(filters);
     const menusDTO = MenuResponseDTO.fromModel(menus);

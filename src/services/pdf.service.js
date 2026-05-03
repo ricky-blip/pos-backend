@@ -22,7 +22,7 @@ class PdfService {
         });
 
         // Header
-        doc.fontSize(20).text('Laporan Penjualan PadiPos', { align: 'center' });
+        doc.fontSize(20).text(`Laporan Penjualan ${data.storeName || 'PadiPos'}`, { align: 'center' });
         doc.moveDown();
         
         doc.fontSize(12).text(`Periode: ${filters.startDate ? filters.startDate.substring(0, 10) : 'Semua'} s/d ${filters.endDate ? filters.endDate.substring(0, 10) : 'Semua'}`);

@@ -66,41 +66,49 @@ const categoryPlaceholders = {
 const seedCategoriesAndMenus = async () => {
   try {
     const categoryCount = await Category.count();
-    if (categoryCount > 0) {
-      console.log('Categories and Menus already seeded.');
-      return;
+    if (categoryCount === 0) {
+      const categoriesData = [
+        { label: "Foods", slug: "foods" },
+        { label: "Beverages", slug: "beverages" },
+        { label: "Dessert", slug: "dessert" },
+      ];
+
+      const categories = await Category.bulkCreate(categoriesData, { returning: true });
+
+      const categoryMap = {};
+      categories.forEach(cat => {
+        categoryMap[cat.slug] = cat.id;
+      });
+
+      const mockMenus = [
+        { name: "Gado-gado Special", categoryId: categoryMap["foods"], price: 20000, unit: "portion", description: "Vegetables, egg, tempe, tofu, ketupat, peanut sauce, and kerupuk.", image: categoryPlaceholders.foods, stock: 100 },
+        { name: "Nasi Goreng Kampung", categoryId: categoryMap["foods"], price: 25000, unit: "plate", description: "Savory fried rice with egg, shredded chicken, pickles, and crackers.", image: categoryPlaceholders.foods, stock: 100 },
+        { name: "Mie Ayam Bowl", categoryId: categoryMap["foods"], price: 22000, unit: "bowl", description: "Springy noodles with seasoned chicken, greens, and crispy wonton.", image: categoryPlaceholders.foods, stock: 100 },
+        { name: "Sate Ayam", categoryId: categoryMap["foods"], price: 30000, unit: "portion", description: "Charcoal grilled chicken satay with peanut sauce and rice cake.", image: categoryPlaceholders.foods, stock: 100 },
+        { name: "Es Teh Manis", categoryId: categoryMap["beverages"], price: 8000, unit: "glass", description: "Fresh brewed sweet iced tea served chilled for dine-in or takeaway.", image: categoryPlaceholders.beverages, stock: 100 },
+        { name: "Kopi Latte", categoryId: categoryMap["beverages"], price: 18000, unit: "cup", description: "Espresso with creamy steamed milk and a soft foam finish.", image: categoryPlaceholders.beverages, stock: 100 },
+        { name: "Jus Alpukat", categoryId: categoryMap["beverages"], price: 17000, unit: "glass", description: "Fresh avocado juice with condensed milk and chocolate drizzle.", image: categoryPlaceholders.beverages, stock: 100 },
+        { name: "Pudding Coklat", categoryId: categoryMap["dessert"], price: 15000, unit: "cup", description: "Silky chocolate pudding topped with cream and grated chocolate.", image: categoryPlaceholders.dessert, stock: 100 },
+        { name: "Cheesecake Slice", categoryId: categoryMap["dessert"], price: 24000, unit: "slice", description: "Creamy baked cheesecake with a buttery biscuit crust.", image: categoryPlaceholders.dessert, stock: 100 },
+        { name: "Fruit Parfait", categoryId: categoryMap["dessert"], price: 21000, unit: "cup", description: "Layered yogurt, granola, and seasonal fruits for a light dessert.", image: categoryPlaceholders.dessert, stock: 100 },
+        { name: "Ayam Bakar Madu", categoryId: categoryMap["foods"], price: 32000, unit: "plate", description: "Honey glazed grilled chicken served with sambal and warm rice.", image: categoryPlaceholders.foods, stock: 100 },
+        { name: "Lemon Tea", categoryId: categoryMap["beverages"], price: 12000, unit: "glass", description: "Refreshing iced lemon tea with a bright citrus finish.", image: categoryPlaceholders.beverages, stock: 100 },
+      ];
+
+      await Menu.bulkCreate(mockMenus);
+      console.log('✅ Categories and Menus seeded successfully!');
     }
 
-    const categoriesData = [
-      { label: "Foods", slug: "foods" },
-      { label: "Beverages", slug: "beverages" },
-      { label: "Dessert", slug: "dessert" },
-    ];
-
-    const categories = await Category.bulkCreate(categoriesData, { returning: true });
-
-    const categoryMap = {};
-    categories.forEach(cat => {
-      categoryMap[cat.slug] = cat.id;
+    // Ensure all existing items with 0 stock are updated to 100
+    const [updatedCount] = await Menu.update({ stock: 100 }, {
+      where: {
+        stock: 0
+      }
     });
 
-    const mockMenus = [
-      { name: "Gado-gado Special", categoryId: categoryMap["foods"], price: 20000, unit: "portion", description: "Vegetables, egg, tempe, tofu, ketupat, peanut sauce, and kerupuk.", image: categoryPlaceholders.foods },
-      { name: "Nasi Goreng Kampung", categoryId: categoryMap["foods"], price: 25000, unit: "plate", description: "Savory fried rice with egg, shredded chicken, pickles, and crackers.", image: categoryPlaceholders.foods },
-      { name: "Mie Ayam Bowl", categoryId: categoryMap["foods"], price: 22000, unit: "bowl", description: "Springy noodles with seasoned chicken, greens, and crispy wonton.", image: categoryPlaceholders.foods },
-      { name: "Sate Ayam", categoryId: categoryMap["foods"], price: 30000, unit: "portion", description: "Charcoal grilled chicken satay with peanut sauce and rice cake.", image: categoryPlaceholders.foods },
-      { name: "Es Teh Manis", categoryId: categoryMap["beverages"], price: 8000, unit: "glass", description: "Fresh brewed sweet iced tea served chilled for dine-in or takeaway.", image: categoryPlaceholders.beverages },
-      { name: "Kopi Latte", categoryId: categoryMap["beverages"], price: 18000, unit: "cup", description: "Espresso with creamy steamed milk and a soft foam finish.", image: categoryPlaceholders.beverages },
-      { name: "Jus Alpukat", categoryId: categoryMap["beverages"], price: 17000, unit: "glass", description: "Fresh avocado juice with condensed milk and chocolate drizzle.", image: categoryPlaceholders.beverages },
-      { name: "Pudding Coklat", categoryId: categoryMap["dessert"], price: 15000, unit: "cup", description: "Silky chocolate pudding topped with cream and grated chocolate.", image: categoryPlaceholders.dessert },
-      { name: "Cheesecake Slice", categoryId: categoryMap["dessert"], price: 24000, unit: "slice", description: "Creamy baked cheesecake with a buttery biscuit crust.", image: categoryPlaceholders.dessert },
-      { name: "Fruit Parfait", categoryId: categoryMap["dessert"], price: 21000, unit: "cup", description: "Layered yogurt, granola, and seasonal fruits for a light dessert.", image: categoryPlaceholders.dessert },
-      { name: "Ayam Bakar Madu", categoryId: categoryMap["foods"], price: 32000, unit: "plate", description: "Honey glazed grilled chicken served with sambal and warm rice.", image: categoryPlaceholders.foods },
-      { name: "Lemon Tea", categoryId: categoryMap["beverages"], price: 12000, unit: "glass", description: "Refreshing iced lemon tea with a bright citrus finish.", image: categoryPlaceholders.beverages },
-    ];
-
-    await Menu.bulkCreate(mockMenus);
-    console.log('✅ Categories and Menus seeded successfully!');
+    if (updatedCount > 0) {
+      console.log(`✅ Updated ${updatedCount} items with 0 stock to 100.`);
+    }
   } catch (error) {
     console.error('❌ Gagal menjalankan seeder categories dan menus:', error);
   }

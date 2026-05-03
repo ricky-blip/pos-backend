@@ -32,12 +32,13 @@ class UserService {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
+    
+    // Auto-role to cashier as there's only one admin
     return await User.create({
       username,
       email,
       password: hashedPassword,
-      role: role || 'cashier',
+      role: 'cashier',
       isActive: true
     });
   }
@@ -54,6 +55,27 @@ class UserService {
     }
 
     const { username, email, role, isActive, avatar } = updateData;
+
+    // Single Admin Policy: Role changes
+    if (role !== undefined && role !== user.role) {
+      if (role === 'admin') {
+        const adminCount = await User.count({ where: { role: 'admin' } });
+        if (adminCount > 0) {
+          const error = new Error('Sistem sudah memiliki Admin. Hanya diperbolehkan satu Admin');
+          error.status = 400;
+          throw error;
+        }
+      }
+      
+      if (user.role === 'admin' && role === 'cashier') {
+        const adminCount = await User.count({ where: { role: 'admin' } });
+        if (adminCount <= 1) {
+          const error = new Error('Tidak dapat mengubah role Admin terakhir. Sistem wajib memiliki minimal satu Admin');
+          error.status = 400;
+          throw error;
+        }
+      }
+    }
 
     if (username !== undefined) user.username = username;
     if (email !== undefined) user.email = email;
@@ -96,6 +118,14 @@ class UserService {
       const error = new Error('User tidak ditemukan');
       error.status = 404;
       throw error;
+    }
+    if (user.role === 'admin') {
+      const adminCount = await User.count({ where: { role: 'admin' } });
+      if (adminCount <= 1) {
+        const error = new Error('Tidak dapat menghapus Admin terakhir. Sistem wajib memiliki satu Admin untuk operasional');
+        error.status = 400;
+        throw error;
+      }
     }
     await user.destroy();
     return true;
